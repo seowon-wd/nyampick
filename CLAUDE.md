@@ -7,7 +7,7 @@
 **오늘 뭐먹냠** (홈 화면 표시 이름: 뭐먹냠, slug·딥링크 scheme: `nyampick`): 끼니마다 "뭐 먹지?"를 고민하는 사람들을 위한 모바일 앱입니다.
 질문형 추천으로 메뉴를 골라주고, 여럿이 함께 투표해서 정할 수도 있습니다.
 
-- 현재 상태: 1단계 코드 작성됨, Expo Go 동작 확인됨. Supabase 프로젝트 연결됨(익명 로그인). AI 추천은 범위에서 뺌
+- 현재 상태: 1단계 Expo Go 동작 확인됨. 2단계 함께 고르기 구현됨(DB 확인 스크립트 통과), 기기 2대 확인 전. AI 추천은 범위에서 뺌
 - UI 언어: 한국어만
 
 ## 기술 스택
@@ -72,7 +72,7 @@ src/
   types.ts
   features/recommend/       # filter.ts, recommend.ts (순수 함수 + *.test.ts), questions.ts, session.ts(결과 화면 상태)
   features/prefs/store.ts   # Zustand + persist(AsyncStorage)
-  features/room/            # 2단계: api, useRoomRealtime, tally(+테스트)
+  features/room/            # 2단계: types, api(+테스트), useRoomRealtime, tally(+테스트)
   lib/supabase.ts           # 클라이언트(env 없으면 null), ensureSession()
   components/               # ui.tsx(공통 컴포넌트·색상), MenuCard.tsx
 supabase/
@@ -86,6 +86,8 @@ npm start                 # 개발 서버 (Expo Go로 QR 스캔)
 npm test                  # Jest (테스트 파일은 *.test.ts)
 npm run typecheck         # tsc --noEmit
 npx expo install <pkg>    # 패키지 추가는 항상 이걸로 (SDK 호환 버전)
+npm run check:db          # 원격 DB 권한·RPC 확인 (실행마다 익명 사용자가 쌓임)
+npx supabase db push --remote=<ref>   # 마이그레이션 적용 (새 테이블은 authenticated에 grant 필요)
 ```
 
 - Expo SDK 58입니다. Expo API는 기억에 의존하지 말고 https://docs.expo.dev/versions/v58.0.0/ 를 확인합니다.
