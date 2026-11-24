@@ -83,6 +83,7 @@ supabase/
 
 ```bash
 npm start                 # 개발 서버 (Expo Go로 QR 스캔)
+npm run web               # 웹 브라우저에서 실행 (react-native-web). 웹 공유는 features/room/share.ts
 npm test                  # Jest (테스트 파일은 *.test.ts)
 npm run typecheck         # tsc --noEmit
 npx expo install <pkg>    # 패키지 추가는 항상 이걸로 (SDK 호환 버전)

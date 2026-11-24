@@ -1,12 +1,13 @@
 import * as Linking from 'expo-linking';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { MenuCard } from '@/components/MenuCard';
 import { Button, colors, DISPLAY_FONT, Note, Screen, Section, text, TextField, TextLink } from '@/components/ui';
 import { getMenu, MENUS } from '@/data/menus';
 import { usePrefsStore } from '@/features/prefs/store';
 import { addCandidate, closeRoom, joinRoom, ROOM_ERROR_TEXT, RoomError, vote } from '@/features/room/api';
+import { shareOnWeb } from '@/features/room/share';
 import { tally, type TallyRow } from '@/features/room/tally';
 import type { RoomSnapshot } from '@/features/room/types';
 import { useRoomRealtime } from '@/features/room/useRoomRealtime';
@@ -106,6 +107,7 @@ function OpenRoom({
 }) {
   const { room, members, candidates, votes } = snapshot;
   const [actionError, setActionError] = useState<RoomError['code'] | null>(null);
+  const [shareResult, setShareResult] = useState<'copied' | 'manual' | null>(null);
   const [adding, setAdding] = useState(false);
   const [query, setQuery] = useState('');
   const rows = useMemo(() => tally(candidates, votes), [candidates, votes]);
@@ -125,8 +127,16 @@ function OpenRoom({
     reload();
   };
 
-  const share = () =>
-    Share.share({ message: `뭐먹냠 방 코드: ${room.code}\n${Linking.createURL(`room/${room.code}`)}` });
+  const link = Linking.createURL(`room/${room.code}`);
+  const message = `뭐먹냠 방 코드: ${room.code}\n${link}`;
+  const share = async () => {
+    if (Platform.OS !== 'web') {
+      await Share.share({ message });
+      return;
+    }
+    const result = await shareOnWeb(message);
+    setShareResult(result === 'shared' ? null : result);
+  };
 
   return (
     <Screen>
@@ -136,6 +146,12 @@ function OpenRoom({
           {room.code}
         </Text>
         <TextLink label="코드 공유하기" onPress={share} />
+        {shareResult === 'copied' ? <Text style={text.sub}>링크를 복사했어요. 친구에게 붙여 넣어 보내 주세요.</Text> : null}
+        {shareResult === 'manual' ? (
+          <Text style={text.sub} selectable>
+            이 링크를 복사해서 보내 주세요: {link}
+          </Text>
+        ) : null}
       </View>
 
       <Text style={text.sub}>
