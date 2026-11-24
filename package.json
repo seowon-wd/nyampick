@@ -34,7 +34,8 @@
     "web": "expo start --web",
     "test": "jest",
     "test:watch": "jest --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:db": "node --env-file=.env scripts/check-room-db.mjs"
   },
   "private": true,
   "jest": {
