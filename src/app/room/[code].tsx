@@ -12,6 +12,7 @@ import { tally, type TallyRow } from '@/features/room/tally';
 import type { RoomSnapshot } from '@/features/room/types';
 import { useRoomRealtime } from '@/features/room/useRoomRealtime';
 import { supabase } from '@/lib/supabase';
+import { goHome } from '@/lib/nav';
 
 const errorCode = (e: unknown) => (e instanceof RoomError ? e.code : 'unavailable');
 
@@ -256,7 +257,7 @@ function ClosedRoom({ snapshot }: { snapshot: RoomSnapshot }) {
           <CandidateRow key={r.candidate.id} row={r} mine={false} />
         ))}
       </Section>
-      <Button label="처음으로" variant="quiet" onPress={() => router.dismissAll()} />
+      <Button label="처음으로" variant="quiet" onPress={goHome} />
     </Screen>
   );
 }

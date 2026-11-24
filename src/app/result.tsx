@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { Text } from 'react-native';
 import { MenuCard } from '@/components/MenuCard';
@@ -8,6 +7,7 @@ import { getPrefs, usePrefsStore } from '@/features/prefs/store';
 import { RELAX_LABELS } from '@/features/recommend/questions';
 import { recommend } from '@/features/recommend/recommend';
 import { useResultSession } from '@/features/recommend/session';
+import { goHome } from '@/lib/nav';
 
 export default function Result() {
   const { answers, picks, relaxed, setQuizResult } = useResultSession();
@@ -25,7 +25,7 @@ export default function Result() {
       <Screen>
         <Text style={text.title}>추천할 메뉴가 없어요</Text>
         <Text style={text.sub}>별로예요로 표시한 메뉴가 너무 많아요. 내 메뉴 탭에서 몇 개를 풀어주세요.</Text>
-        <Button label="처음으로" onPress={() => router.dismissAll()} />
+        <Button label="처음으로" onPress={goHome} />
       </Screen>
     );
   }
@@ -55,7 +55,7 @@ export default function Result() {
       ))}
 
       {chosenId ? (
-        <Button label="처음으로" variant="quiet" onPress={() => router.dismissAll()} />
+        <Button label="처음으로" variant="quiet" onPress={goHome} />
       ) : (
         <Button label="다시 추천받기" variant="quiet" onPress={again} />
       )}
