@@ -56,12 +56,10 @@ function Stamp() {
 /** 추천 결과 한 장 = 식권 한 장. 위는 메뉴, 절취선 아래는 행동. */
 export function MenuCard({
   menu,
-  reason,
   chosen,
   onChoose,
 }: {
   menu: Menu;
-  reason?: string;
   /** "이걸로 먹을게요"를 누른 식권 */
   chosen?: boolean;
   /** 없으면 행동 버튼을 숨긴다 (다른 메뉴를 이미 고른 경우) */
@@ -86,7 +84,6 @@ export function MenuCard({
             </View>
           </View>
         </View>
-        {reason ? <Text style={text.body}>{reason}</Text> : null}
         {chosen ? <Stamp /> : null}
       </View>
 

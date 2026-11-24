@@ -199,7 +199,7 @@ export function Tag({ label }: { label: string }) {
   );
 }
 
-/** 안내 문구 (조건 완화, AI 대체 등). 왼쪽 굵은 선으로 구분한다. */
+/** 안내 문구 (조건 완화 등). 왼쪽 굵은 선으로 구분한다. */
 export function Note({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
   return (
     <View style={[styles.note, style]}>

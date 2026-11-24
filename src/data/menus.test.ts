@@ -1,4 +1,3 @@
-import { MENUS as EDGE_MENUS } from '../../supabase/functions/_shared/menus';
 import { MENUS } from './menus';
 
 describe('내장 메뉴 데이터', () => {
@@ -18,9 +17,5 @@ describe('내장 메뉴 데이터', () => {
       expect(m.meals.length).toBeGreaterThan(0);
       for (const meal of m.meals) expect(['breakfast', 'lunch', 'dinner']).toContain(meal);
     }
-  });
-
-  it('Edge Function용 메뉴 목록과 동기화돼 있다 (안 맞으면 npm run gen:menus)', () => {
-    expect(EDGE_MENUS).toEqual(MENUS.map(({ id, name }) => ({ id, name })));
   });
 });

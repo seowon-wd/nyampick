@@ -51,7 +51,6 @@ export default function Home() {
 
         <View style={styles.board}>
           <BoardLine name="질문으로 고르기" note="질문 5개" onPress={() => router.push('/quiz')} />
-          <BoardLine name="AI에게 물어보기" note="한 줄이면 돼요" onPress={() => router.push('/ai')} />
           <BoardLine name="함께 고르기" note="곧 나와요" disabled />
         </View>
       </Screen>

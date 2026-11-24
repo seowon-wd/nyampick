@@ -1,4 +1,4 @@
-import type { AnswerKey, Answers, EatenEntry, MealTime, Menu, Prefs } from '@/types';
+import type { AnswerKey, Answers, EatenEntry, Menu } from '@/types';
 
 export const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -22,19 +22,4 @@ export function matchesAnswer(menu: Menu, key: AnswerKey, answers: Answers): boo
     case 'price':
       return answers.price === undefined || menu.price <= answers.price;
   }
-}
-
-/** 싫어하는 메뉴와 최근 먹은 메뉴를 뺀, 지금 추천해도 되는 메뉴 (AI 후보 겸 방어 필터). */
-export function allowedMenus(menus: Menu[], prefs: Prefs, now: number): Menu[] {
-  const disliked = new Set(prefs.disliked);
-  const recent = recentlyEatenIds(prefs.eaten, prefs.excludeDays, now);
-  return menus.filter((m) => !disliked.has(m.id) && !recent.has(m.id));
-}
-
-/** 현재 시각 기준 기본 식사 시간. */
-export function mealTimeAt(date: Date): MealTime {
-  const h = date.getHours();
-  if (h >= 4 && h < 10) return 'breakfast';
-  if (h >= 10 && h < 16) return 'lunch';
-  return 'dinner';
 }

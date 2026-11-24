@@ -12,7 +12,7 @@ export default function RootLayout() {
   const [introDone, setIntroDone] = useState(false);
 
   useEffect(() => {
-    // 로그인 화면 없이 백그라운드에서 익명 로그인 (AI 추천 호출에 필요). 실패해도 앱은 동작한다.
+    // 로그인 화면 없이 백그라운드에서 익명 로그인 (2단계 함께 고르기에 필요). 실패해도 앱은 동작한다.
     void ensureSession();
   }, []);
 
@@ -33,7 +33,6 @@ export default function RootLayout() {
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="quiz" options={{ title: '질문으로 고르기' }} />
-        <Stack.Screen name="ai" options={{ title: 'AI에게 물어보기' }} />
         <Stack.Screen name="result" options={{ title: '오늘의 식권' }} />
       </Stack>
       {introDone ? null : <Intro onDone={() => setIntroDone(true)} />}

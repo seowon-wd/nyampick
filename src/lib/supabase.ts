@@ -6,7 +6,7 @@ import { AppState, Platform } from 'react-native';
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const key = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-/** Supabase 설정이 없으면 null. 이때 AI 추천은 질문형으로 대체된다. */
+/** Supabase 설정이 없으면 null. 이때 함께 고르기는 쓸 수 없다. */
 export const supabase: SupabaseClient | null =
   url && key
     ? createClient(url, key, {

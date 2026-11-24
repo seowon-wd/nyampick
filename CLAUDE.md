@@ -5,9 +5,9 @@
 ## 프로젝트 개요
 
 **오늘 뭐먹냠** (홈 화면 표시 이름: 뭐먹냠, slug·딥링크 scheme: `nyampick`): 끼니마다 "뭐 먹지?"를 고민하는 사람들을 위한 모바일 앱입니다.
-질문형 추천과 AI 추천으로 메뉴를 골라주고, 여럿이 함께 투표해서 정할 수도 있습니다.
+질문형 추천으로 메뉴를 골라주고, 여럿이 함께 투표해서 정할 수도 있습니다.
 
-- 현재 상태: 1단계 코드 대부분 작성됨, Expo Go 동작 확인됨 (Supabase 미연결)
+- 현재 상태: 1단계 코드 작성됨, Expo Go 동작 확인됨. Supabase 프로젝트 연결됨(익명 로그인). AI 추천은 범위에서 뺌
 - UI 언어: 한국어만
 
 ## 기술 스택
@@ -15,8 +15,7 @@
 | 영역 | 선택 |
 |------|------|
 | 앱 | Expo (React Native) + TypeScript |
-| 백엔드 | Supabase (Postgres, Realtime, 익명 로그인, Edge Functions) |
-| AI | Claude API. **Supabase Edge Function에서만 호출** |
+| 백엔드 | Supabase (Postgres, Realtime, 익명 로그인) |
 | 기기 저장 | AsyncStorage |
 
 ## 개발 단계
@@ -26,13 +25,9 @@
 1. **질문형 추천**
    - "국물이 당겨요?", "매운 거?", "밥/면/빵?", "가격대?" 같은 질문 3~5개에 답합니다.
    - 내장된 메뉴 목록에서 조건에 맞는 메뉴를 추천합니다.
-2. **AI 추천**
-   - "비 오고 피곤해"처럼 기분이나 상황을 자유롭게 입력합니다.
-   - Edge Function을 거쳐 Claude가 메뉴 2~3개를 이유와 함께 추천합니다.
-   - 네트워크나 API 오류가 나면 질문형 추천으로 자연스럽게 넘어갑니다.
-3. **개인화**
+2. **개인화**
    - 즐겨찾기한 메뉴는 추천 가중치를 높입니다.
-   - 싫어하는 메뉴는 추천 결과에서 아예 뺍니다. AI 추천에서도 빼야 하므로 프롬프트에 함께 보냅니다.
+   - 싫어하는 메뉴는 추천 결과에서 아예 뺍니다.
    - "이걸로 먹을게"로 확정한 메뉴는 기록하고, 최근 N일 동안 추천에서 뺍니다. 기본값은 **2일**이고 설정에서 바꿀 수 있습니다.
 
 ### 2단계: 함께 고르기
@@ -51,8 +46,7 @@
 
 ## 보안 규칙
 
-- **Claude API 키를 앱 코드나 `EXPO_PUBLIC_*` 환경변수에 절대 넣지 않습니다.** 키는 Supabase Edge Function의 secret으로만 관리합니다.
-- 앱에 넣어도 되는 키는 Supabase anon key뿐이며, 데이터 보호는 RLS 정책으로 합니다.
+- 앱에 넣어도 되는 키는 Supabase publishable(anon) key뿐이며, 데이터 보호는 RLS 정책으로 합니다.
 - `.env` 같은 비밀 파일은 커밋하지 않습니다.
 
 ## 작업 방식
@@ -68,24 +62,20 @@ src/
   app/                      # Expo Router 화면 (이 폴더의 파일은 모두 라우트)
     _layout.tsx             # Stack + 앱 시작 시 익명 로그인
     (tabs)/_layout.tsx      # 탭: 홈 / 내 메뉴 / 설정
-    (tabs)/index.tsx        # 홈: 질문형 / AI / 함께 고르기
+    (tabs)/index.tsx        # 홈: 질문형 / 함께 고르기
     (tabs)/favorites.tsx    # 즐겨찾기·싫어하는 메뉴 관리
     (tabs)/settings.tsx     # 제외 일수, 먹은 기록
-    quiz.tsx  ai.tsx  result.tsx
+    quiz.tsx  result.tsx
     room/...                # 2단계
   data/menus.json           # 메뉴 80개 단일 원본 (ID는 불변)
   data/menus.ts             # MENUS, getMenu()
   types.ts
   features/recommend/       # filter.ts, recommend.ts (순수 함수 + *.test.ts), questions.ts, session.ts(결과 화면 상태)
-  features/ai/api.ts        # Edge Function 호출, 8초 타임아웃, 실패 시 AiUnavailableError → /quiz
   features/prefs/store.ts   # Zustand + persist(AsyncStorage)
   features/room/            # 2단계: api, useRoomRealtime, tally(+테스트)
   lib/supabase.ts           # 클라이언트(env 없으면 null), ensureSession()
   components/               # ui.tsx(공통 컴포넌트·색상), MenuCard.tsx
-scripts/gen-edge-menus.mjs  # menus.json → supabase/functions/_shared/menus.ts
 supabase/
-  functions/recommend/      # Claude 호출 (claude-haiku-5-5 기본, CLAUDE_MODEL secret으로 교체)
-  functions/_shared/menus.ts  # 자동 생성 (직접 수정 금지)
   migrations/               # 2단계
 ```
 
@@ -95,20 +85,14 @@ supabase/
 npm start                 # 개발 서버 (Expo Go로 QR 스캔)
 npm test                  # Jest (테스트 파일은 *.test.ts)
 npm run typecheck         # tsc --noEmit
-npm run gen:menus         # menus.json 수정 후 반드시 실행 (동기화 테스트가 검사함)
 npx expo install <pkg>    # 패키지 추가는 항상 이걸로 (SDK 호환 버전)
-supabase functions deploy recommend
 ```
 
 - Expo SDK 58입니다. Expo API는 기억에 의존하지 말고 https://docs.expo.dev/versions/v58.0.0/ 를 확인합니다.
-- Supabase 키가 없어도(.env 미설정) 앱은 동작하며, AI 추천만 질문형으로 대체됩니다.
+- Supabase 키가 없어도(.env 미설정) 혼자 쓰기(1단계)는 동작합니다.
 
-- **의존성**: expo, expo-router, expo-linking, AsyncStorage, zustand, @supabase/supabase-js, react-native-url-polyfill, zod, jest-expo. React Query는 쓰지 않습니다.
-- **익명 로그인**: 1단계부터 앱을 시작할 때 Supabase 익명 로그인을 합니다. `recommend` Edge Function은 JWT를 요구합니다.
-- **AI 추천**:
-  - 클라이언트는 싫어하는 메뉴와 최근 메뉴를 함께 보내고, 서버는 메뉴 목록 안에서만 고르게 합니다.
-  - 서버는 응답을 zod로 검증하고, 모르는 ID와 제외 대상 ID를 버립니다.
-  - 입력은 200자 이하로 제한합니다.
+- **의존성**: expo, expo-router, expo-linking, AsyncStorage, zustand, @supabase/supabase-js, react-native-url-polyfill, jest-expo. React Query는 쓰지 않습니다.
+- **익명 로그인**: 앱을 시작할 때 Supabase 익명 로그인을 합니다. 2단계 RLS가 이 사용자 ID를 씁니다.
 - **추천 알고리즘**:
   1. 싫어하는 메뉴와 최근 N일 안에 먹은 메뉴를 뺍니다.
   2. 답변으로 점수를 매기고, 즐겨찾기 메뉴는 점수를 1.5배 합니다.

@@ -1,7 +1,7 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, Note, OptionRow, Screen, text, TextLink } from '@/components/ui';
+import { colors, OptionRow, Screen, text, TextLink } from '@/components/ui';
 import { MENUS } from '@/data/menus';
 import { getPrefs } from '@/features/prefs/store';
 import { QUESTIONS } from '@/features/recommend/questions';
@@ -10,7 +10,6 @@ import { useResultSession } from '@/features/recommend/session';
 import type { Answers } from '@/types';
 
 export default function Quiz() {
-  const { fallback } = useLocalSearchParams<{ fallback?: string }>();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const setQuizResult = useResultSession((s) => s.setQuizResult);
@@ -32,8 +31,6 @@ export default function Quiz() {
 
   return (
     <Screen>
-      {fallback ? <Note>지금은 AI 추천을 쓸 수 없어서 질문으로 골라드릴게요.</Note> : null}
-
       <View style={styles.progress} accessibilityLabel={`질문 ${step + 1}/${QUESTIONS.length}`}>
         {QUESTIONS.map((q, i) => (
           <View key={q.key} style={[styles.cell, i < step && styles.cellDone, i === step && styles.cellNow]} />

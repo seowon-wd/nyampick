@@ -1,5 +1,5 @@
 import type { Menu, Prefs } from '@/types';
-import { allowedMenus, DAY_MS, matchesAnswer, mealTimeAt, recentlyEatenIds } from './filter';
+import { DAY_MS, matchesAnswer, recentlyEatenIds } from './filter';
 import { recommend, weightedSample } from './recommend';
 
 const NOW = Date.UTC(2026, 10, 24, 12);
@@ -59,14 +59,6 @@ describe('matchesAnswer', () => {
 
   it('답이 없으면 항상 맞는다', () => {
     expect(matchesAnswer(menu('x', { soup: true }), 'soup', {})).toBe(true);
-  });
-});
-
-describe('allowedMenus', () => {
-  it('싫어하는 메뉴와 최근 먹은 메뉴를 뺀다', () => {
-    const menus = [menu('a'), menu('b'), menu('c')];
-    const p = prefs({ disliked: ['a'], eaten: [{ id: 'b', at: NOW - DAY_MS }] });
-    expect(allowedMenus(menus, p, NOW).map((m) => m.id)).toEqual(['c']);
   });
 });
 
@@ -144,14 +136,5 @@ describe('weightedSample', () => {
 
   it('후보가 count보다 적으면 있는 만큼만 돌려준다', () => {
     expect(weightedSample(['a'], [1], 3, Math.random)).toEqual(['a']);
-  });
-});
-
-describe('mealTimeAt', () => {
-  it('시간대별 식사', () => {
-    expect(mealTimeAt(new Date(2026, 0, 1, 8))).toBe('breakfast');
-    expect(mealTimeAt(new Date(2026, 0, 1, 12))).toBe('lunch');
-    expect(mealTimeAt(new Date(2026, 0, 1, 19))).toBe('dinner');
-    expect(mealTimeAt(new Date(2026, 0, 1, 2))).toBe('dinner');
   });
 });
