@@ -10,14 +10,6 @@
 - 현재 상태: 1단계·2단계 동작 확인됨 (Expo Go, 웹 브라우저 두 창). AI 추천은 범위에서 뺌
 - UI 언어: 한국어만
 
-## 기술 스택
-
-| 영역 | 선택 |
-|------|------|
-| 앱 | Expo (React Native) + TypeScript |
-| 백엔드 | Supabase (Postgres, Realtime, 익명 로그인) |
-| 기기 저장 | AsyncStorage |
-
 ## 개발 단계
 
 ### 1단계: 혼자 쓰기 (MVP)
@@ -55,38 +47,15 @@
 - 추천 로직(필터링, 가중치, 최근 메뉴 제외)은 UI와 분리된 순수 함수로 작성하고 테스트를 붙입니다.
 - 코드 주석과 커밋 메시지는 한국어로 작성해도 됩니다.
 
-## 아키텍처 (확정: 실용 균형안)
+## 불변 규칙
 
-```
-src/
-  app/                      # Expo Router 화면 (이 폴더의 파일은 모두 라우트)
-    _layout.tsx             # Stack + 앱 시작 시 익명 로그인
-    (tabs)/_layout.tsx      # 탭: 홈 / 내 메뉴 / 설정
-    (tabs)/index.tsx        # 홈: 질문형 / 함께 고르기
-    (tabs)/favorites.tsx    # 즐겨찾기·싫어하는 메뉴 관리
-    (tabs)/settings.tsx     # 제외 일수, 먹은 기록
-    quiz.tsx  result.tsx
-    room/...                # 2단계
-  data/menus.json           # 메뉴 80개 단일 원본 (ID는 불변)
-  data/menus.ts             # MENUS, getMenu()
-  types.ts
-  features/recommend/       # filter.ts, recommend.ts (순수 함수 + *.test.ts), questions.ts, session.ts(결과 화면 상태)
-  features/prefs/store.ts   # Zustand + persist(AsyncStorage)
-  features/room/            # 2단계: types, api(+테스트), useRoomRealtime, tally(+테스트)
-  lib/supabase.ts           # 클라이언트(env 없으면 null), ensureSession()
-  components/               # ui.tsx(공통 컴포넌트·색상), MenuCard.tsx
-supabase/
-  migrations/               # 2단계
-```
+- 메뉴 ID(`src/data/menus.json`)는 즐겨찾기·먹은 기록·방 데이터가 참조하므로 절대 바꾸지 않습니다.
 
 ## 명령어
 
 ```bash
-npm start                 # 개발 서버 (Expo Go로 QR 스캔)
 npm run web               # 웹 브라우저에서 실행 (react-native-web). 웹 공유는 features/room/share.ts
 # 웹 배포: main에 push하면 .github/workflows/deploy.yml이 GitHub Pages에 올림 (https://seowon-wd.github.io/nyampick/, app.json baseUrl=/nyampick)
-npm test                  # Jest (테스트 파일은 *.test.ts)
-npm run typecheck         # tsc --noEmit
 npx expo install <pkg>    # 패키지 추가는 항상 이걸로 (SDK 호환 버전)
 npm run check:db          # 원격 DB 권한·RPC 확인 (실행마다 익명 사용자가 쌓임)
 npx supabase db push --remote=<ref>   # 마이그레이션 적용 (새 테이블은 authenticated에 grant 필요)
@@ -95,7 +64,7 @@ npx supabase db push --remote=<ref>   # 마이그레이션 적용 (새 테이블
 - Expo SDK 58입니다. Expo API는 기억에 의존하지 말고 https://docs.expo.dev/versions/v58.0.0/ 를 확인합니다.
 - Supabase 키가 없어도(.env 미설정) 혼자 쓰기(1단계)는 동작합니다.
 
-- **의존성**: expo, expo-router, expo-linking, AsyncStorage, zustand, @supabase/supabase-js, react-native-url-polyfill, jest-expo. React Query는 쓰지 않습니다.
+- React Query는 쓰지 않습니다.
 - **익명 로그인**: 앱을 시작할 때 Supabase 익명 로그인을 합니다. 2단계 RLS가 이 사용자 ID를 씁니다.
 - **추천 알고리즘**:
   1. 싫어하는 메뉴와 최근 N일 안에 먹은 메뉴를 뺍니다.
