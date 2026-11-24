@@ -17,18 +17,21 @@ interface PrefsActions {
   removeEaten: (at: number) => void;
   clearEaten: () => void;
   setExcludeDays: (days: number) => void;
+  setNickname: (name: string) => void;
 }
 
 const toggle = (list: string[], id: string) =>
   list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
 
-export const usePrefsStore = create<Prefs & PrefsActions>()(
+export const usePrefsStore = create<Prefs & { nickname: string } & PrefsActions>()(
   persist(
     (set) => ({
       favorites: [],
       disliked: [],
       eaten: [],
       excludeDays: DEFAULT_EXCLUDE_DAYS,
+      /** 함께 고르기에서 마지막으로 쓴 닉네임 */
+      nickname: '',
 
       toggleFavorite: (id) =>
         set((s) => ({ favorites: toggle(s.favorites, id), disliked: s.disliked.filter((x) => x !== id) })),
@@ -42,12 +45,13 @@ export const usePrefsStore = create<Prefs & PrefsActions>()(
       clearEaten: () => set({ eaten: [] }),
       setExcludeDays: (days) =>
         set({ excludeDays: Math.max(0, Math.min(MAX_EXCLUDE_DAYS, Math.round(days))) }),
+      setNickname: (nickname) => set({ nickname }),
     }),
     {
       name: 'prefs',
       version: 1,
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: ({ favorites, disliked, eaten, excludeDays }) => ({ favorites, disliked, eaten, excludeDays }),
+      partialize: ({ favorites, disliked, eaten, excludeDays, nickname }) => ({ favorites, disliked, eaten, excludeDays, nickname }),
     },
   ),
 );
