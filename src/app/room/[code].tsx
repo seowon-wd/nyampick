@@ -23,7 +23,7 @@ export default function RoomScreen() {
   const [myId, setMyId] = useState<string | null>(null);
   const [joinError, setJoinError] = useState<RoomError['code'] | null>(null);
   const [joinTry, setJoinTry] = useState(0);
-  const { snapshot, error, reload } = useRoomRealtime(roomId);
+  const { snapshot, error, reload, retry } = useRoomRealtime(roomId);
 
   // 닉네임이 있으면 바로 참여 (이미 멤버여도 join_room은 멱등)
   useEffect(() => {
@@ -75,7 +75,7 @@ export default function RoomScreen() {
         {error ? (
           <>
             <Note>{ROOM_ERROR_TEXT[error.code]}</Note>
-            <Button label="다시 시도" onPress={reload} />
+            <Button label="다시 시도" onPress={retry} />
           </>
         ) : (
           <Text style={text.sub}>방에 들어가는 중…</Text>
@@ -87,7 +87,7 @@ export default function RoomScreen() {
   return snapshot.room.closed_at ? (
     <ClosedRoom snapshot={snapshot} />
   ) : (
-    <OpenRoom snapshot={snapshot} myId={myId} error={error?.code ?? null} reload={reload} />
+    <OpenRoom snapshot={snapshot} myId={myId} error={error?.code ?? null} reload={reload} retry={retry} />
   );
 }
 
@@ -96,11 +96,13 @@ function OpenRoom({
   myId,
   error,
   reload,
+  retry,
 }: {
   snapshot: RoomSnapshot;
   myId: string | null;
   error: RoomError['code'] | null;
   reload: () => void;
+  retry: () => void;
 }) {
   const { room, members, candidates, votes } = snapshot;
   const [actionError, setActionError] = useState<RoomError['code'] | null>(null);
@@ -140,7 +142,12 @@ function OpenRoom({
         {members.length}명 중 {votes.length}명 투표했어요
       </Text>
 
-      {error || actionError ? <Note>{ROOM_ERROR_TEXT[actionError ?? error!]}</Note> : null}
+      {error || actionError ? (
+        <View style={{ gap: 8 }}>
+          <Note>{ROOM_ERROR_TEXT[actionError ?? error!]}</Note>
+          <TextLink label="다시 불러오기" onPress={retry} />
+        </View>
+      ) : null}
 
       <Section title="후보">
         {rows.length === 0 ? <Text style={text.sub}>아직 후보가 없어요. 먹고 싶은 메뉴를 올려 주세요.</Text> : null}

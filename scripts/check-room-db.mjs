@@ -56,6 +56,8 @@ await fails('외부인 후보 추가', C.c.from('candidates').insert({ room_id: 
 const [c1] = await ok('A m01', A.c.from('candidates').insert({ room_id: roomId, menu_id: 'm01' }).select('id'));
 const [c2] = await ok('B m02', B.c.from('candidates').insert({ room_id: roomId, menu_id: 'm02' }).select('id'));
 await fails('중복 후보', B.c.from('candidates').insert({ room_id: roomId, menu_id: 'm01' }), '23505');
+// 동점 순서(created_at)를 클라이언트가 조작하지 못한다
+await fails('created_at 조작', B.c.from('candidates').insert({ room_id: roomId, menu_id: 'm04', created_at: '2000-01-01T00:00:00Z' }));
 
 // 6. 다른 방 후보에 투표 불가
 const otherCode = await ok('B create', B.c.rpc('create_room', { nickname: '방장B' }));

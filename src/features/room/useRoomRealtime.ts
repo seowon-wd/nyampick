@@ -3,10 +3,19 @@ import { supabase } from '@/lib/supabase';
 import { fetchSnapshot, RoomError, toRoomError } from './api';
 import type { RoomSnapshot } from './types';
 
+let topicSeq = 0;
+
+/** 마운트마다 새 채널 이름. 같은 이름이면 realtime-js가 아직 나가는 중인 옛 채널을 돌려줘 구독이 멈춘다. */
+export function roomTopic(roomId: string): string {
+  return `room:${roomId}:${++topicSeq}`;
+}
+
 /** 방 구독 → (구독되면) 스냅샷 → 이벤트가 올 때마다 다시 불러오기. 화면을 떠나면 채널을 지운다. */
 export function useRoomRealtime(roomId: string | null) {
   const [snapshot, setSnapshot] = useState<RoomSnapshot | null>(null);
   const [error, setError] = useState<RoomError | null>(null);
+  // 늘리면 채널을 새로 만들어 다시 구독한다 ([다시 시도])
+  const [attempt, setAttempt] = useState(0);
   // 늦게 도착한 응답이 더 새 응답을 덮지 않게 요청 순번을 센다
   const seq = useRef(0);
 
@@ -30,7 +39,7 @@ export function useRoomRealtime(roomId: string | null) {
     const client = supabase;
     const byRoom = `room_id=eq.${roomId}`;
     const channel = client
-      .channel(`room:${roomId}`)
+      .channel(roomTopic(roomId))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'candidates', filter: byRoom }, reload)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'votes', filter: byRoom }, reload)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'members', filter: byRoom }, reload)
@@ -42,7 +51,9 @@ export function useRoomRealtime(roomId: string | null) {
     return () => {
       void client.removeChannel(channel);
     };
-  }, [roomId, reload]);
+  }, [roomId, reload, attempt]);
 
-  return { snapshot, error, reload };
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
+
+  return { snapshot, error, reload, retry };
 }
