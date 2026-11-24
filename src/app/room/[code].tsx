@@ -155,7 +155,9 @@ function OpenRoom({
     reload();
   };
 
-  const link = Linking.createURL(`room/${room.code}`);
+  // 웹: 지금 보고 있는 방 주소가 곧 공유 링크다 (createURL은 GitHub Pages의 /nyampick 경로를 빼먹는다)
+  const link =
+    Platform.OS === 'web' ? `${window.location.origin}${window.location.pathname}` : Linking.createURL(`room/${room.code}`);
   const message = `뭐먹냠 방 코드: ${room.code}\n${link}`;
   const share = async () => {
     if (Platform.OS !== 'web') {
