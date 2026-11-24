@@ -34,6 +34,8 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="quiz" options={{ title: '질문으로 고르기' }} />
         <Stack.Screen name="result" options={{ title: '오늘의 식권' }} />
+        <Stack.Screen name="room/index" options={{ title: '함께 고르기' }} />
+        <Stack.Screen name="room/[code]" options={{ title: '함께 고르기' }} />
       </Stack>
       {introDone ? null : <Intro onDone={() => setIntroDone(true)} />}
     </>

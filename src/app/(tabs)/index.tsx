@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, DISPLAY_FONT, DottedLine, Screen, text } from '@/components/ui';
 import { getMenu } from '@/data/menus';
 import { usePrefsStore } from '@/features/prefs/store';
+import { supabase } from '@/lib/supabase';
 
 /** 분식집 메뉴판 한 줄: 이름 ······ 오른쪽 메모 */
 function BoardLine({
@@ -51,7 +52,11 @@ export default function Home() {
 
         <View style={styles.board}>
           <BoardLine name="질문으로 고르기" note="질문 5개" onPress={() => router.push('/quiz')} />
-          <BoardLine name="함께 고르기" note="곧 나와요" disabled />
+          {supabase ? (
+            <BoardLine name="함께 고르기" note="친구랑 투표" onPress={() => router.push('/room')} />
+          ) : (
+            <BoardLine name="함께 고르기" note="설정 필요" disabled />
+          )}
         </View>
       </Screen>
     </SafeAreaView>

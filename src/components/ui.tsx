@@ -4,6 +4,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
   type StyleProp,
   type ViewStyle,
@@ -204,6 +205,41 @@ export function Note({ children, style }: { children: ReactNode; style?: StylePr
   return (
     <View style={[styles.note, style]}>
       <Text style={text.sub}>{children}</Text>
+    </View>
+  );
+}
+
+/** 글자 입력 한 칸. 위에 라벨, 아래에 선택지와 같은 테두리. */
+export function TextField({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  keyboardType = 'default',
+  maxLength,
+}: {
+  label: string;
+  value: string;
+  onChangeText: (t: string) => void;
+  placeholder?: string;
+  keyboardType?: 'default' | 'number-pad';
+  maxLength?: number;
+}) {
+  return (
+    <View style={{ gap: 6 }}>
+      <Text style={text.section}>{label}</Text>
+      <TextInput
+        accessibilityLabel={label}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={colors.steam}
+        keyboardType={keyboardType}
+        maxLength={maxLength}
+        autoCorrect={false}
+        autoCapitalize="none"
+        style={[styles.option, styles.optionText]}
+      />
     </View>
   );
 }
