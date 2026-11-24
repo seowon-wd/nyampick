@@ -2,7 +2,14 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { ensureSession, supabase } from '@/lib/supabase';
 import type { Candidate, Member, Room, RoomSnapshot, Vote } from './types';
 
-export type RoomErrorCode = 'room_not_found' | 'not_host' | 'no_candidates' | 'bad_nickname' | 'duplicate' | 'unavailable';
+export type RoomErrorCode =
+  | 'room_not_found'
+  | 'not_host'
+  | 'no_candidates'
+  | 'bad_nickname'
+  | 'duplicate'
+  | 'closed'
+  | 'unavailable';
 
 export class RoomError extends Error {
   constructor(public code: RoomErrorCode) {
@@ -17,6 +24,7 @@ export const ROOM_ERROR_TEXT: Record<RoomErrorCode, string> = {
   no_candidates: '후보를 하나 이상 올려 주세요.',
   bad_nickname: '닉네임은 1~20자로 적어 주세요.',
   duplicate: '이미 올라온 메뉴예요.',
+  closed: '투표가 마감됐어요.',
   unavailable: '연결이 불안정해요. 잠시 후 다시 시도해 주세요.',
 };
 
@@ -25,6 +33,8 @@ const SERVER_CODES = ['room_not_found', 'not_host', 'no_candidates', 'bad_nickna
 /** Supabase 오류를 화면용 코드로 바꾼다. 모르는 오류는 모두 연결 문제로 본다. */
 export function toRoomError(e: { message?: string; code?: string } | null | undefined): RoomError {
   if (e?.code === '23505') return new RoomError('duplicate');
+  // 방 안에서 RLS가 쓰기를 막는 경우는 사실상 마감뿐이다
+  if (e?.code === '42501') return new RoomError('closed');
   const found = SERVER_CODES.find((c) => e?.message?.includes(c));
   return new RoomError(found ?? 'unavailable');
 }

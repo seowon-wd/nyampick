@@ -9,6 +9,7 @@ describe('toRoomError', () => {
     [{ message: 'no_candidates' }, 'no_candidates'],
     [{ message: 'bad_nickname' }, 'bad_nickname'],
     [{ code: '23505', message: 'duplicate key value' }, 'duplicate'],
+    [{ code: '42501', message: 'new row violates row-level security policy for table "votes"' }, 'closed'],
     [{ message: 'Failed to fetch' }, 'unavailable'],
     [null, 'unavailable'],
   ])('toRoomError(%j) → %s', (input, code) => {

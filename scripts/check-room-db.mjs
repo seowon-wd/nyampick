@@ -79,8 +79,8 @@ assert.equal(await ok('close 1', A.c.rpc('close_room', { room_id: roomId })), 'm
 assert.equal(await ok('close 2', A.c.rpc('close_room', { room_id: roomId })), 'm01');
 
 // 9. 마감 후 쓰기 거부
-await fails('마감 후 투표', vote(B, c2.id));
-await fails('마감 후 후보', B.c.from('candidates').insert({ room_id: roomId, menu_id: 'm07' }));
+await fails('마감 후 투표', vote(B, c2.id), '42501');
+await fails('마감 후 후보', B.c.from('candidates').insert({ room_id: roomId, menu_id: 'm07' }), '42501');
 
 // 10. 후보 없는 방은 마감 불가
 const emptyCode = await ok('C create', C.c.rpc('create_room', { nickname: '빈방' }));

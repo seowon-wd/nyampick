@@ -5,7 +5,8 @@ import { Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native
 import { MenuCard } from '@/components/MenuCard';
 import { Button, colors, DISPLAY_FONT, Note, Screen, Section, text, TextField, TextLink } from '@/components/ui';
 import { getMenu, MENUS } from '@/data/menus';
-import { usePrefsStore } from '@/features/prefs/store';
+import { usePrefsHydrated, usePrefsStore } from '@/features/prefs/store';
+import { loggedForRoom } from '@/features/room/eaten';
 import { addCandidate, closeRoom, joinRoom, ROOM_ERROR_TEXT, RoomError, vote } from '@/features/room/api';
 import { shareOnWeb } from '@/features/room/share';
 import { tally, type TallyRow } from '@/features/room/tally';
@@ -27,6 +28,7 @@ export default function RoomScreen() {
   const [joinTry, setJoinTry] = useState(0);
   const { snapshot, error, reload, retry } = useRoomRealtime(roomId);
   const navigation = useNavigation();
+  const hydrated = usePrefsHydrated();
 
   // 링크로 바로 들어오면(웹) 되돌아갈 화면이 없어 뒤로가기가 안 보인다. 그때만 홈으로 버튼을 단다.
   useLayoutEffect(() => {
@@ -58,6 +60,15 @@ export default function RoomScreen() {
     };
   }, [code, nickname, roomId, joinTry]);
 
+  // 저장된 닉네임을 불러오기 전에 입력 화면이 깜빡이지 않게 기다린다
+  if (!hydrated) {
+    return (
+      <Screen>
+        <Text style={text.sub}>방에 들어가는 중…</Text>
+      </Screen>
+    );
+  }
+
   if (!nickname) {
     const name = nicknameInput.trim();
     return (
@@ -74,7 +85,10 @@ export default function RoomScreen() {
       <Screen>
         <Note>{ROOM_ERROR_TEXT[joinError]}</Note>
         {joinError === 'room_not_found' ? (
-          <Button label="코드 다시 입력" onPress={() => router.replace('/room')} />
+          <Button
+            label="코드 다시 입력"
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/room'))}
+          />
         ) : joinError === 'bad_nickname' ? (
           <Button label="닉네임 다시 입력" onPress={() => setNickname('')} />
         ) : (
@@ -242,8 +256,9 @@ function CandidateRow({ row, mine, onPress }: { row: TallyRow; mine: boolean; on
 
 function ClosedRoom({ snapshot }: { snapshot: RoomSnapshot }) {
   const logEaten = usePrefsStore((s) => s.logEaten);
-  const [chosen, setChosen] = useState(false);
+  const eaten = usePrefsStore((s) => s.eaten);
   const winner = snapshot.room.winner_menu_id ? getMenu(snapshot.room.winner_menu_id) : undefined;
+  const chosen = !!winner && loggedForRoom(eaten, winner.id, Date.parse(snapshot.room.closed_at!));
   const rows = tally(snapshot.candidates, snapshot.votes);
 
   return (
@@ -256,10 +271,7 @@ function ClosedRoom({ snapshot }: { snapshot: RoomSnapshot }) {
           onChoose={
             chosen
               ? undefined
-              : () => {
-                  logEaten(winner.id);
-                  setChosen(true);
-                }
+              : () => logEaten(winner.id)
           }
         />
       ) : (

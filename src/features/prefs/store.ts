@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { DAY_MS } from '@/features/recommend/filter';
@@ -55,6 +56,18 @@ export const usePrefsStore = create<Prefs & { nickname: string } & PrefsActions>
     },
   ),
 );
+
+/** 기기 저장소를 다 불러왔는지. 그 전에는 닉네임 등이 기본값('')이다. */
+export function usePrefsHydrated(): boolean {
+  const [hydrated, setHydrated] = useState(() => usePrefsStore.persist.hasHydrated());
+  useEffect(() => {
+    const unsub = usePrefsStore.persist.onFinishHydration(() => setHydrated(true));
+    // 구독 전에 끝났을 수도 있으니 한 번 더 확인
+    setHydrated(usePrefsStore.persist.hasHydrated());
+    return unsub;
+  }, []);
+  return hydrated;
+}
 
 /** 추천 함수에 넘길 현재 개인 설정 스냅샷. */
 export function getPrefs(): Prefs {
