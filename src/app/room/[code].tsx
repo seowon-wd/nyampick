@@ -1,6 +1,6 @@
 import * as Linking from 'expo-linking';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { router, useLocalSearchParams, useNavigation } from 'expo-router';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { MenuCard } from '@/components/MenuCard';
 import { Button, colors, DISPLAY_FONT, Note, Screen, Section, text, TextField, TextLink } from '@/components/ui';
@@ -26,6 +26,19 @@ export default function RoomScreen() {
   const [joinError, setJoinError] = useState<RoomError['code'] | null>(null);
   const [joinTry, setJoinTry] = useState(0);
   const { snapshot, error, reload, retry } = useRoomRealtime(roomId);
+  const navigation = useNavigation();
+
+  // 링크로 바로 들어오면(웹) 되돌아갈 화면이 없어 뒤로가기가 안 보인다. 그때만 홈으로 버튼을 단다.
+  useLayoutEffect(() => {
+    if (router.canGoBack()) return;
+    navigation.setOptions({
+      headerLeft: () => (
+        <View style={{ paddingHorizontal: 12 }}>
+          <TextLink label="홈으로" onPress={goHome} />
+        </View>
+      ),
+    });
+  }, [navigation]);
 
   // 닉네임이 있으면 바로 참여 (이미 멤버여도 join_room은 멱등)
   useEffect(() => {
